@@ -12,16 +12,29 @@ pygame.display.set_caption('Dungeon Crawler')
 #create clock for maintaning frame rate
 clock = pygame.time.Clock()
 
-#create player
-player = Character(100, 100)
-
 #define player movement variables
 moving_left = False
 moving_right = False
 moving_up = False
 moving_down = False
 
-#main game loop
+#helper function to scale image
+def scale_img(image, scale):
+    w = image.get_width()
+    h = image.get_height()
+    return pygame.transform.scale(image, (w * scale, h * scale))
+
+animation_list = []
+for i in range(4):
+
+    img = pygame.image.load(f'assets/images/characters/elf/idle/{i}.png').convert_alpha()
+    img = scale_img(img, constants.SCALE)
+    animation_list.append(img)
+
+#create player
+player = Character(100, 100, animation_list)
+
+#MAIN GAME LOOP!
 run = True
 while run:
 
@@ -44,6 +57,9 @@ while run:
 
     #move player
     player.move(dx, dy)
+
+    #update player
+    player.update()
 
     #draw player on screen
     player.draw(screen)
