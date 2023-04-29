@@ -28,9 +28,9 @@ class Character():
         self.rect.x += dx
         self.rect.y += dy
 
-    def update(self):
+    def update(self): #updating the state of the moving and flipped image
         #handle animation and update image
-        animation_cooldown = 70
+        animation_cooldown = 75
         self.image = self.animation_list[self.frame_index]
         #checking if enough time has passed since last update
         if pygame.time.get_ticks() - self.update_time > animation_cooldown:
