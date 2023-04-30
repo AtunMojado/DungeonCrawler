@@ -1,2 +1,2 @@
 # DungeonCrawler
-A fun game I did following the steps of Udemy Dungeon Crawler game.
+A fun game I did following the steps of a tutorial.
