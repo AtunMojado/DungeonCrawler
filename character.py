@@ -4,7 +4,7 @@ import pygame
 import constants
 
 class Character():
-    def __init__(self, x, y, mob_animations, char_type):
+    def __init__(self, x, y, health, mob_animations, char_type):
         self.char_type = char_type
         self.flip = False
         self.animation_list = mob_animations[char_type]
@@ -12,6 +12,9 @@ class Character():
         self.action = 0 # 0 is IDLE, 1 is RUNNING
         self.update_time = pygame.time.get_ticks()
         self.running = True
+        self.health = health
+        self.alive = True
+
         self.image = self.animation_list[self.action][self.frame_index]
         self.rect = pygame.Rect(0, 0, 40, 40)
         self.rect.center = (x, y)
@@ -36,6 +39,10 @@ class Character():
 
     # updating the state of the moving and flipped image
     def update(self):
+        #check if character has died
+        if self.health <= 0:
+            self.health = 0
+            self.alive = False
         #check what action the player is performing
         if self.running == True:
             self.update_action(1)# 1 = RUN
