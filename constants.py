@@ -11,9 +11,16 @@ ARROW_SPEED = 10
 OFFSET = 12 #space between rect created and character
 TILE_SIZE = 16 * SCALE
 TILE_TYPES = 18
-RED = (255, 0, 0)
-WHITE = (255, 255, 255)
+ROWS = 150
+COLS = 150
+
+
+
+
+
 
 #background color
 BG = (40, 25, 25)
 PANEL = (50, 50, 50)
+RED = (255, 0, 0)
+WHITE = (255, 255, 255)
