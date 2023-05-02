@@ -2,6 +2,9 @@ import pygame
 import constants
 from character import Character
 from weapon import Weapon
+from items import Item
+from world import World
+
 
 pygame.init()
 
@@ -33,10 +36,25 @@ heart_empty = scale_img(pygame.image.load('assets/images/items/heart_empty.png')
 heart_half = scale_img(pygame.image.load('assets/images/items/heart_half.png').convert_alpha(), constants.ITEM_SCALE)
 heart_full = scale_img(pygame.image.load('assets/images/items/heart_full.png').convert_alpha(), constants.ITEM_SCALE)
 
+#load coin images
+coin_images = []
+for x in range(4):
+    img = scale_img(pygame.image.load(f'assets/images/items/coin_f{x}.png').convert_alpha(), constants.ITEM_SCALE)
+    coin_images.append(img)
+#load potion image
+red_potion = scale_img(pygame.image.load('assets/images/items/potion_red.png').convert_alpha(), constants.POTION_SCALE)
 #load weapon images
 bow_image = scale_img(pygame.image.load('assets/images/weapons/bow.png').convert_alpha(), constants.WEAPON_SCALE)
 arrow_image = scale_img(pygame.image.load('assets/images/weapons/arrow.png').convert_alpha(), constants.WEAPON_SCALE)
 
+
+
+#load tilemap images
+tile_list = []
+for x in range(constants.TILE_TYPES):
+    tile_image = pygame.image.load(f'assets/images/tiles/{x}.png').convert_alpha()
+    tile_image = pygame.transform.scale(tile_image, (constants.TILE_SIZE, constants.TILE_SIZE))
+    tile_list.append(tile_image)
 #load character images
 mob_animations = []
 mob_types = ['elf', 'imp', 'skeleton', 'goblin', 'muddy', 'tiny_zombie', 'big_demon']
@@ -54,6 +72,11 @@ for mob in mob_types:
         animation_list.append(temp_list)
     mob_animations.append(animation_list)
 
+#function for outputing text onto the screen
+def draw_text(text, font, text_col, x, y):
+    img = font.render(text, True, text_col)
+    screen.blit(img, (x, y))
+
 #function for displaying game info(health, damage, etc...)
 def draw_info():
     pygame.draw.rect(screen, constants.PANEL, (0, 0, constants.SCREEN_WIDTH, 50))
@@ -68,6 +91,32 @@ def draw_info():
             half_heart_drawn = True
         else:
             screen.blit(heart_empty, (10 + i * 50, 0))
+    #show score
+    draw_text(f'x{player.score}', font, constants.WHITE, constants.SCREEN_WIDTH -250, 15)
+
+world_data = [
+[7, 7, 7, 7, 7, 7],
+[7, 0, 1, 2, 7, 7],
+[7, 3, 4, 5, 7, 7],
+[7, 6, 6, 6, 7, 7],
+[7, 7, 7, 0, 7, 7]
+]
+
+world = World()
+world.process_data(world_data, tile_list)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #damage text class
 class DamageText(pygame.sprite.Sprite):
@@ -86,7 +135,7 @@ class DamageText(pygame.sprite.Sprite):
             self.kill()
 
 #create player
-player = Character(100, 100, 100, mob_animations, 0)
+player = Character(100, 100, 30, mob_animations, 0)
 #create enemy
 enemy = Character(200, 300, 100, mob_animations, 2)
 
@@ -99,6 +148,21 @@ enemy_list.append(enemy)
 #create sprite groups
 damage_text_group = pygame.sprite.Group()
 arrow_group = pygame.sprite.Group()
+item_group = pygame.sprite.Group()
+
+score_coin = Item(constants.SCREEN_WIDTH - 265, 23, 0, coin_images)
+item_group.add(score_coin)
+
+potion = Item(200, 200, 1, [red_potion])
+item_group.add(potion)
+coin = Item(400, 400, 0, coin_images)
+item_group.add(coin)
+
+
+
+
+
+
 
 
 #MAIN GAME LOOP!
@@ -109,6 +173,8 @@ while run:
     clock.tick(constants.FPS)
 
     screen.fill(constants.BG)
+
+    
 
     #calculate player movement(change in x and y)
     dx = 0
@@ -138,9 +204,11 @@ while run:
             damage_text = DamageText(damage_pos.centerx, damage_pos.y, str(damage), constants.RED)
             damage_text_group.add(damage_text)
     damage_text_group.update()
+    item_group.update(player)
 
 
     #draw players and players stuff on screen
+    world.draw(screen)
     for enemy in enemy_list:
         enemy.draw(screen)
     player.draw(screen)
@@ -148,7 +216,9 @@ while run:
     for arrow in arrow_group:
         arrow.draw(screen)
     damage_text_group.draw(screen)
+    item_group.draw(screen)
     draw_info()
+    score_coin.draw(screen)
 
     #event handler
     for event in pygame.event.get():
