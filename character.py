@@ -21,6 +21,8 @@ class Character():
         self.rect.center = (x, y)
 
     def move(self, dx, dy):
+        screen_scroll = [0, 0]
+
         self.running = False
 
         if dx != 0 or dy != 0: #if this coords are not 0, there is movement
@@ -37,6 +39,31 @@ class Character():
 
         self.rect.x += dx
         self.rect.y += dy
+
+        #logic only applicable to player, not the enemies
+        if self.char_type == 0:
+            #update scroll based on player position
+            #move camera left and right
+            if self.rect.right > (constants.SCREEN_WIDTH - constants.SCROLL_THRESHOLD):
+                screen_scroll[0] = (constants.SCREEN_WIDTH - constants.SCROLL_THRESHOLD) - self.rect.right
+                self.rect.right = constants.SCREEN_WIDTH - constants.SCROLL_THRESHOLD
+            if self.rect.left < constants.SCROLL_THRESHOLD:
+                screen_scroll[0] = constants.SCROLL_THRESHOLD - self.rect.left
+                self.rect.left = constants.SCROLL_THRESHOLD
+
+            #move camera up and down
+            if self.rect.bottom > (constants.SCREEN_HEIGHT - constants.SCROLL_THRESHOLD):
+                screen_scroll[1] = (constants.SCREEN_HEIGHT - constants.SCROLL_THRESHOLD) - self.rect.bottom
+                self.rect.bottom = constants.SCREEN_HEIGHT - constants.SCROLL_THRESHOLD
+            if self.rect.top < constants.SCROLL_THRESHOLD:
+                screen_scroll[1] = constants.SCROLL_THRESHOLD - self.rect.top
+                self.rect.top = constants.SCROLL_THRESHOLD
+        return screen_scroll
+
+    def ai(self, screen_scroll): #enemies movement
+        #reposition the mobs based on screen scroll
+        self.rect.x += screen_scroll[0]
+        self.rect.y += screen_scroll[1]
 
     # updating the state of the moving and flipped image
     def update(self):

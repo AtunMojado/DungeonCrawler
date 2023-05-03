@@ -19,6 +19,7 @@ clock = pygame.time.Clock()
 
 #define game variables
 level = 1
+screen_scroll = [0, 0]
 
 #define player movement variables
 moving_left = False
@@ -114,19 +115,6 @@ with open(f'levels/level{level}_data.csv', newline='') as csvfile:
 world = World()
 world.process_data(world_data, tile_list)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 #damage text class
 class DamageText(pygame.sprite.Sprite):
     def __init__(self, x, y, damage, color):
@@ -136,6 +124,9 @@ class DamageText(pygame.sprite.Sprite):
         self.rect.center = (x, y)
         self.counter = 0
     def update(self):
+        #reposition based on screen scroll(this makes the number of damage stay in the correct place)
+        self.rect.x += screen_scroll[0]
+        self.rect.y += screen_scroll[1]
         #move damage text up, if not its always represented stacked one over the previous
         self.rect.y -= 1
         #delete counter after few seconds
@@ -144,9 +135,9 @@ class DamageText(pygame.sprite.Sprite):
             self.kill()
 
 #create player
-player = Character(100, 100, 30, mob_animations, 0)
+player = Character(400, 300, 30, mob_animations, 0)
 #create enemy
-enemy = Character(200, 300, 100, mob_animations, 2)
+enemy = Character(300, 300, 100, mob_animations, 2)
 
 #create players weapon
 bow = Weapon(bow_image, arrow_image)
@@ -159,13 +150,17 @@ damage_text_group = pygame.sprite.Group()
 arrow_group = pygame.sprite.Group()
 item_group = pygame.sprite.Group()
 
-score_coin = Item(constants.SCREEN_WIDTH - 265, 23, 0, coin_images)
+score_coin = Item(constants.SCREEN_WIDTH - 265, 23, 0, coin_images, True)
 item_group.add(score_coin)
 
 potion = Item(200, 200, 1, [red_potion])
 item_group.add(potion)
 coin = Item(400, 400, 0, coin_images)
 item_group.add(coin)
+
+
+
+
 
 
 
@@ -198,22 +193,25 @@ while run:
         dy = constants.SPEED
 
     #move player
-    player.move(dx, dy)
+    screen_scroll = player.move(dx, dy)
 
-    #update players
+
+    #update all objects(player, world, coins, etc...)
+    world.update(screen_scroll)
     for enemy in enemy_list:
+        enemy.ai(screen_scroll)
         enemy.update()
     player.update()
     arrow = bow.update(player)
     if arrow: #means an arrow has been returned, the value is not None
         arrow_group.add(arrow)
     for arrow in arrow_group:
-        damage, damage_pos = arrow.update(enemy_list)
+        damage, damage_pos = arrow.update(screen_scroll, enemy_list)
         if damage:
             damage_text = DamageText(damage_pos.centerx, damage_pos.y, str(damage), constants.RED)
             damage_text_group.add(damage_text)
     damage_text_group.update()
-    item_group.update(player)
+    item_group.update(screen_scroll, player)
 
 
     #draw players and players stuff on screen
