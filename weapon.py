@@ -53,13 +53,19 @@ class Arrow(pygame.sprite.Sprite):
         self.dx = math.cos(math.radians(self.angle)) * constants.ARROW_SPEED
         self.dy = -(math.sin(math.radians(self.angle)) * constants.ARROW_SPEED)#negative because Ycoord increases down screen
 
-    def update(self, screen_scroll, enemy_list):
+    def update(self, screen_scroll, obstacle_tiles, enemy_list):
         #reset variables
         damage = 0
         damage_pos = None
         #reposition based on speed
         self.rect.x += screen_scroll[0] + self.dx
         self.rect.y += screen_scroll[1] + self.dy
+
+        #check for collision arrow/tile wall
+        for obstacle in obstacle_tiles:
+            if obstacle[1].colliderect(self.rect):
+                self.kill()
+
 
         #check if arrow has gone off screen
         if self.rect.right < 0 or self.rect.left > constants.SCREEN_WIDTH or self.rect.bottom < 0 or self.rect.top > constants.SCREEN_HEIGHT:
@@ -71,6 +77,7 @@ class Arrow(pygame.sprite.Sprite):
                 damage = 10 + random.randint(-5, 5)#cause damage between 5 and 15
                 damage_pos = enemy.rect
                 enemy.health -= damage
+                enemy.hit = True
                 self.kill()#makes the arrow stop
                 break
 

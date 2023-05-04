@@ -16,10 +16,13 @@ class Character():
         self.running = True
         self.health = health
         self.alive = True
+        self.hit = False
+        self.last_hit = pygame.time.get_ticks()
 
         self.image = self.animation_list[self.action][self.frame_index]
         self.rect = pygame.Rect(0, 0, constants.TILE_SIZE*size, constants.TILE_SIZE*size)
         self.rect.center = (x, y)
+        self.stunned = False#when an arrow hits the enemy, make him a little stop
 
     def move(self, dx, dy, obstacle_tiles):
         screen_scroll = [0, 0]
@@ -80,17 +83,64 @@ class Character():
                 self.rect.top = constants.SCROLL_THRESHOLD
         return screen_scroll
 
-    def ai(self, screen_scroll): #enemies movement
+    def ai(self, player, obstacle_tiles, screen_scroll): #enemies movement
+        clipped_line = ()
+        stun_cooldown = 200
+        ai_dx = 0
+        ai_dy = 0
         #reposition the mobs based on screen scroll
         self.rect.x += screen_scroll[0]
         self.rect.y += screen_scroll[1]
 
+        #create a line of sight from the enemy to the player
+        line_of_sight = ((self.rect.centerx, self.rect.centery), (player.rect.centerx, player.rect.centery))
+        #check if line of sight passes through an obstacle tile
+        for obstacle in obstacle_tiles:
+            if obstacle[1].clipline(line_of_sight):#clipline, collision with a line, not a rect
+                clipped_line = obstacle[1].clipline(line_of_sight)
+
+
+        #check distance to player
+        dist = math.sqrt(((self.rect.centerx - player.rect.centerx)**2) + ((self.rect.centerx - player.rect.centerx)**2))
+        if not clipped_line and dist > constants.RANGE:
+            if self.rect.centerx > player.rect.centerx:
+                ai_dx = -constants.ENEMY_SPEED
+            if self.rect.centerx < player.rect.centerx:
+                ai_dx = constants.ENEMY_SPEED
+            if self.rect.centery > player.rect.centery:
+                ai_dy = -constants.ENEMY_SPEED
+            if self.rect.centery < player.rect.centery:
+                ai_dy = constants.ENEMY_SPEED
+
+        if self.alive:
+            if not self.stunned:
+                #move towards player
+                self.move(ai_dx, ai_dy, obstacle_tiles)
+                #attack player
+                if dist < constants.ATTACK_RANGE and player.hit == False:
+                    player.health -= 10
+                    player.hit = True
+                    player.last_hit = pygame.time.get_ticks()
+            #check if hit
+            if self.hit == True:
+                self.hit = False
+                self.last_hit = pygame.time.get_ticks()
+                self.stunned = True
+                self.running = False
+                self.update_action(0)
+            if (pygame.time.get_ticks() - self.last_hit > stun_cooldown):
+                self.stunned = False
     # updating the state of the moving and flipped image
     def update(self):
         #check if character has died
         if self.health <= 0:
             self.health = 0
             self.alive = False
+        #timer to reset player taking a hit
+        hit_cooldown = 3000
+        if self.char_type == 0:
+            if self.hit == True and (pygame.time.get_ticks() - self.last_hit) > hit_cooldown:
+                self.hit = False
         #check what action the player is performing
         if self.running == True:
             self.update_action(1)# 1 = RUN
