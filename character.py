@@ -2,6 +2,8 @@ import math
 
 import pygame
 import constants
+import weapon
+
 
 class Character():
     def __init__(self, x, y, health, mob_animations, char_type, boss, size):
@@ -18,11 +20,14 @@ class Character():
         self.alive = True
         self.hit = False
         self.last_hit = pygame.time.get_ticks()
+        self.last_attack = pygame.time.get_ticks()
+        self.stunned = False  # when an arrow hits the enemy, make him a little stop
 
         self.image = self.animation_list[self.action][self.frame_index]
-        self.rect = pygame.Rect(0, 0, constants.TILE_SIZE*size, constants.TILE_SIZE*size)
+        # a bit of difference in the rect to let the characters pass betwen tiles
+        self.rect = pygame.Rect(0, 0, constants.TILE_SIZE*size -3, constants.TILE_SIZE*size -3)
         self.rect.center = (x, y)
-        self.stunned = False#when an arrow hits the enemy, make him a little stop
+
 
     def move(self, dx, dy, obstacle_tiles):
         screen_scroll = [0, 0]
@@ -83,11 +88,12 @@ class Character():
                 self.rect.top = constants.SCROLL_THRESHOLD
         return screen_scroll
 
-    def ai(self, player, obstacle_tiles, screen_scroll): #enemies movement
+    def ai(self, player, obstacle_tiles, screen_scroll, fireball_image): #enemies movement
         clipped_line = ()
         stun_cooldown = 200
         ai_dx = 0
         ai_dy = 0
+        fireball = None
         #reposition the mobs based on screen scroll
         self.rect.x += screen_scroll[0]
         self.rect.y += screen_scroll[1]
@@ -121,6 +127,16 @@ class Character():
                     player.health -= 10
                     player.hit = True
                     player.last_hit = pygame.time.get_ticks()
+                #boss enemies shoot fireballs
+                fireball_cooldown = 800
+                if self.boss:
+                    if dist < 500:
+                        if pygame.time.get_ticks() - self.last_attack >= fireball_cooldown:
+                            fireball = weapon.Fireball(fireball_image, self.rect.centerx, self.rect.centery, player.rect.centerx, player.rect.centery)
+                            self.last_attack = pygame.time.get_ticks()
+
+
+
             #check if hit
             if self.hit == True:
                 self.hit = False
@@ -130,6 +146,8 @@ class Character():
                 self.update_action(0)
             if (pygame.time.get_ticks() - self.last_hit > stun_cooldown):
                 self.stunned = False
+
+        return fireball
     # updating the state of the moving and flipped image
     def update(self):
         #check if character has died
@@ -137,7 +155,7 @@ class Character():
             self.health = 0
             self.alive = False
         #timer to reset player taking a hit
-        hit_cooldown = 3000
+        hit_cooldown = 1600
         if self.char_type == 0:
             if self.hit == True and (pygame.time.get_ticks() - self.last_hit) > hit_cooldown:
                 self.hit = False
@@ -173,5 +191,7 @@ class Character():
             surface.blit(flipped_image, (self.rect.x, self.rect.y - constants.SCALE*constants.OFFSET))
         else:
             surface.blit(flipped_image, self.rect)
-        pygame.draw.rect(surface, (constants.RED), self.rect, 1)
+        #show a rect object over the character to visualize collisions etc...
+        #pygame.draw.rect(surface, (constants.RED), self.rect, 1)
+
 

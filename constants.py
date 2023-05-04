@@ -6,8 +6,10 @@ SCALE = 3
 WEAPON_SCALE = 1.5
 ITEM_SCALE = 3
 POTION_SCALE = 2
+FIREBALL_SCALE = 1
 SPEED = 5
 ARROW_SPEED = 10
+FIREBALL_SPEED = 3
 ENEMY_SPEED = 2
 OFFSET = 12 #space between rect created and character
 TILE_SIZE = 16 * SCALE
@@ -15,7 +17,7 @@ TILE_TYPES = 18
 ROWS = 150
 COLS = 150
 SCROLL_THRESHOLD = 200
-RANGE = 40 #used to keep the distance between main char and enemies
+RANGE = 50 #used to keep the distance between main char and enemies
 ATTACK_RANGE = 60
 
 
