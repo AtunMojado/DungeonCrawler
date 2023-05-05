@@ -29,10 +29,11 @@ class Character():
         self.rect.center = (x, y)
 
 
-    def move(self, dx, dy, obstacle_tiles):
+    def move(self, dx, dy, obstacle_tiles, exit_tile):
         screen_scroll = [0, 0]
-
+        level_complete = False
         self.running = False
+
 
         if dx != 0 or dy != 0: #if this coords are not 0, there is movement
             self.running = True
@@ -70,6 +71,13 @@ class Character():
 
         #logic only applicable to player, not the enemies
         if self.char_type == 0:
+            #check collision with exit ladder but not just collision, player needs to be upon the ladder
+            if exit_tile[1].colliderect(self.rect):
+                #ensure player is close to the center of the exit ladder
+                exit_dist = math.sqrt(((self.rect.centerx - exit_tile[1].centerx) ** 2) + ((self.rect.centery - exit_tile[1].centery) ** 2))
+                if exit_dist < 20:
+                    level_complete = True
+
             #update scroll based on player position
             #move camera left and right
             if self.rect.right > (constants.SCREEN_WIDTH - constants.SCROLL_THRESHOLD):
@@ -86,7 +94,7 @@ class Character():
             if self.rect.top < constants.SCROLL_THRESHOLD:
                 screen_scroll[1] = constants.SCROLL_THRESHOLD - self.rect.top
                 self.rect.top = constants.SCROLL_THRESHOLD
-        return screen_scroll
+        return screen_scroll, level_complete
 
     def ai(self, player, obstacle_tiles, screen_scroll, fireball_image): #enemies movement
         clipped_line = ()
@@ -121,7 +129,7 @@ class Character():
         if self.alive:
             if not self.stunned:
                 #move towards player
-                self.move(ai_dx, ai_dy, obstacle_tiles)
+                self.move(ai_dx, ai_dy, obstacle_tiles, exit_tile=None)
                 #attack player
                 if dist < constants.ATTACK_RANGE and player.hit == False:
                     player.health -= 10

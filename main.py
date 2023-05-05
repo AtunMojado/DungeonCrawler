@@ -107,21 +107,21 @@ def draw_info():
     #show score
     draw_text(f'x{player.score}', font, constants.WHITE, constants.SCREEN_WIDTH -100, 15)
 
-#create empty tile list
-world_data = []
-for row in range(constants.ROWS):
-    r = [-1] * constants.COLS
-    world_data.append(r)
-#load in level data and create world
-with open(f'levels/level{level}_data.csv', newline='') as csvfile:
-    reader = csv.reader(csvfile, delimiter=',')
-    for x,row in enumerate(reader):
-        for y,tile in enumerate(row):
-            world_data[x][y] = int(tile)
+#function to reset level
+def reset_level():
+    damage_text_group.empty()
+    arrow_group.empty()
+    item_group.empty()
+    fireball_group.empty()
+
+    #create empty tile list
+    data = []
+    for row in range(constants.ROWS):
+        r = [-1] * constants.COLS
+        data.append(r)
+    return data
 
 
-world = World()
-world.process_data(world_data, tile_list, item_images, mob_animations)
 
 #damage text class
 class DamageText(pygame.sprite.Sprite):
@@ -141,6 +141,22 @@ class DamageText(pygame.sprite.Sprite):
         self.counter += 1
         if self.counter > 30:
             self.kill()
+
+
+#create empty tile list
+world_data = []
+for row in range(constants.ROWS):
+    r = [-1] * constants.COLS
+    world_data.append(r)
+#load in level data and create world
+with open(f'levels/level{level}_data.csv', newline='') as csvfile:
+    reader = csv.reader(csvfile, delimiter=',')
+    for x,row in enumerate(reader):
+        for y,tile in enumerate(row):
+            world_data[x][y] = int(tile)
+
+world = World()
+world.process_data(world_data, tile_list, item_images, mob_animations)
 
 #create player
 player = world.player
@@ -196,7 +212,7 @@ while run:
         dy = constants.SPEED
 
     #move player
-    screen_scroll = player.move(dx, dy, world.obstacle_tiles)
+    screen_scroll, level_complete = player.move(dx, dy, world.obstacle_tiles, world.exit_tile)
 
 
     #update all objects(player, world, coins, etc...)
@@ -235,6 +251,33 @@ while run:
     item_group.draw(screen)
     draw_info()
     score_coin.draw(screen)
+
+    #check level complete
+    if level_complete == True:
+        level += 1
+        world_data = reset_level()
+        # load in level data and create world
+        with open(f'levels/level{level}_data.csv', newline='') as csvfile:
+            reader = csv.reader(csvfile, delimiter=',')
+            for x, row in enumerate(reader):
+                for y, tile in enumerate(row):
+                    world_data[x][y] = int(tile)
+        world = World()
+        world.process_data(world_data, tile_list, item_images, mob_animations)
+        temp_health = player.health #to update the health and score in every level the player passes through
+        temp_score = player.score
+        player = world.player
+        player.health = temp_health
+        player.score = temp_score
+
+        enemy_list = world.character_list
+        score_coin = Item(constants.SCREEN_WIDTH - 115, 23, 0, coin_images, True)
+        item_group.add(score_coin)
+        #add the items from the level data
+        for item in world.item_list:
+            item_group.add(item)
+
+
 
     #event handler
     for event in pygame.event.get():
