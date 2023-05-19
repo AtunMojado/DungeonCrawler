@@ -19,7 +19,7 @@ COLS = 150
 SCROLL_THRESHOLD = 200
 RANGE = 50 #used to keep the distance between main char and enemies
 ATTACK_RANGE = 60
-
+BUTTON_SCALE = 1
 
 
 
@@ -27,7 +27,9 @@ ATTACK_RANGE = 60
 
 #background color
 BG = (40, 25, 25)
+MENU_BG = (130, 0, 0)
 PANEL = (50, 50, 50)
 RED = (255, 0, 0)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+PINK = (235, 65, 54)
