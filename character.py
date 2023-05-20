@@ -108,6 +108,7 @@ class Character():
 
         #create a line of sight from the enemy to the player
         line_of_sight = ((self.rect.centerx, self.rect.centery), (player.rect.centerx, player.rect.centery))
+
         #check if line of sight passes through an obstacle tile
         for obstacle in obstacle_tiles:
             if obstacle[1].clipline(line_of_sight):#clipline, collision with a line, not a rect
@@ -200,6 +201,6 @@ class Character():
         else:
             surface.blit(flipped_image, self.rect)
         #show a rect object over the character to visualize collisions etc...
-        #pygame.draw.rect(surface, (constants.RED), self.rect, 1)
+        pygame.draw.rect(surface, (constants.RED), self.rect, 1)
 
 

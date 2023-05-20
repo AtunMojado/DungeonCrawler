@@ -1,4 +1,5 @@
 import pygame
+from pygame import mixer
 import csv
 import constants
 from character import Character
@@ -7,7 +8,7 @@ from items import Item
 from world import World
 from button import Button
 
-
+mixer.init()
 pygame.init()
 
 
@@ -39,6 +40,19 @@ def scale_img(image, scale):
     w = image.get_width()
     h = image.get_height()
     return pygame.transform.scale(image, (w * scale, h * scale))
+
+#load music and sounds
+pygame.mixer.music.load('assets/audio/music.wav')
+pygame.mixer.music.set_volume(0.3)
+pygame.mixer.music.play(-1, 0.0, 5000)
+shot_fx = pygame.mixer.Sound('assets/audio/arrow_shot.mp3')
+shot_fx.set_volume(0.5)
+hit_fx = pygame.mixer.Sound('assets/audio/arrow_hit.wav')
+hit_fx.set_volume(0.5)
+coin_fx = pygame.mixer.Sound('assets/audio/coin.wav')
+coin_fx.set_volume(0.5)
+heal_fx = pygame.mixer.Sound('assets/audio/heal.wav')
+heal_fx.set_volume(0.5)
 
 #load button images
 start_img = scale_img(pygame.image.load('assets/images/buttons/button_start.png').convert_alpha(), constants.BUTTON_SCALE)
@@ -214,7 +228,7 @@ for item in world.item_list:
 intro_fade = ScreenFade(1, constants.BLACK, 4)
 death_fade = ScreenFade(2, constants.PINK, 4)
 
-#create button
+#create menu buttons
 start_button = Button(constants.SCREEN_WIDTH // 2 - 145, constants.SCREEN_HEIGHT // 2 - 150, start_img)
 exit_button = Button(constants.SCREEN_WIDTH // 2 - 110, constants.SCREEN_HEIGHT // 2 + 50, exit_img)
 restart_button = Button(constants.SCREEN_WIDTH // 2 - 175, constants.SCREEN_HEIGHT // 2 - 50, restart_img)
@@ -278,20 +292,22 @@ while run:
                         enemy.update()
                 player.update()
                 arrow = bow.update(player)
-                if arrow: #means an arrow has been returned, the value is not None
+                if arrow: #means an arrow has been created
                     arrow_group.add(arrow)
+                    shot_fx.play()
                 for arrow in arrow_group:
                     damage, damage_pos = arrow.update(screen_scroll, world.obstacle_tiles, enemy_list)
                     if damage:
                         damage_text = DamageText(damage_pos.centerx, damage_pos.y, str(damage), constants.RED)
                         damage_text_group.add(damage_text)
+                        hit_fx.play()
                 damage_text_group.update()
                 fireball_group.update(screen_scroll, player)
-                item_group.update(screen_scroll, player)
+                item_group.update(screen_scroll, player, coin_fx, heal_fx)
 
 
             #draw players and players stuff on screen
-            world.draw(screen)
+            #world.draw(screen)
             for enemy in enemy_list:
                 enemy.draw(screen)
             player.draw(screen)
